@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
 
-use crate::prelude::*;
 use crate::psbt::raw;
 
 mod global;

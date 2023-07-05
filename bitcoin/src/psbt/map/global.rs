@@ -7,7 +7,7 @@ use crate::blockdata::transaction::Transaction;
 use crate::consensus::encode::MAX_VEC_SIZE;
 use crate::consensus::{encode, Decodable};
 use crate::io::{self, Cursor, Read};
-use crate::prelude::*;
+use crate::prelude::{btree_map, BTreeMap};
 use crate::psbt::map::Map;
 use crate::psbt::{raw, Error, PartiallySignedTransaction};
 

@@ -7,7 +7,6 @@ use core::str::FromStr;
 use internals::write_err;
 
 use crate::error::impl_std_error;
-use crate::prelude::*;
 
 /// Error with rich context returned when a string can't be parsed as an integer.
 ///

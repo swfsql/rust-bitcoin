@@ -33,7 +33,7 @@ use core::{fmt, ops};
 
 use hashes::hex::{Error, FromHex};
 use internals::{debug_from_display, write_err};
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::consensus::encode::{self, Decodable, Encodable};
@@ -61,9 +61,8 @@ pub const PROTOCOL_VERSION: u32 = 70001;
 
 /// The cryptocurrency network to act on.
 #[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Clone, Hash, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(rename_all = "lowercase"))]
 #[non_exhaustive]
 pub enum Network {
     /// Mainnet Bitcoin.
@@ -172,7 +171,7 @@ impl Network {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 pub mod as_core_arg {
     //! Module for serialization/deserialization of network variants into/from Bitcoin Core values
     #![allow(missing_docs)]
@@ -593,6 +592,9 @@ mod tests {
     use std::convert::TryFrom;
     use std::str::FromStr;
 
+    #[cfg(feature = "enable-serde")]
+    use serde::{Deserialize, Serialize};
+
     use super::{Magic, Network, ServiceFlags};
     use crate::consensus::encode::{deserialize, serialize};
 
@@ -664,7 +666,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     fn serde_roundtrip() {
         use Network::*;
         let tests = vec![
@@ -717,11 +719,10 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn serde_as_core_arg() {
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[serde(crate = "actual_serde")]
         struct T {
             #[serde(with = "crate::network::constants::as_core_arg")]
             pub network: Network,

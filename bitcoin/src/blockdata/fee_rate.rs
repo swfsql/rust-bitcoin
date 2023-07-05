@@ -5,8 +5,10 @@
 use core::fmt;
 use core::ops::{Div, Mul};
 
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
+
 use super::Weight;
-use crate::prelude::*;
 use crate::Amount;
 
 /// Represents fee rate.
@@ -14,9 +16,8 @@ use crate::Amount;
 /// This is an integer newtype representing fee rate in `sat/kwu`. It provides protection against mixing
 /// up the types as well as basic formatting features.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(transparent))]
 pub struct FeeRate(u64);
 
 impl FeeRate {

@@ -11,8 +11,6 @@ use core::{fmt, iter, slice, str};
 
 use hashes::{sha256d, Hash};
 
-use crate::prelude::*;
-
 static BASE58_CHARS: &[u8] = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 #[rustfmt::skip]

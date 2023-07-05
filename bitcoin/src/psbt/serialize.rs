@@ -20,7 +20,6 @@ use crate::blockdata::witness::Witness;
 use crate::consensus::encode::{self, deserialize_partial, serialize, Decodable, Encodable};
 use crate::crypto::key::PublicKey;
 use crate::crypto::{ecdsa, taproot};
-use crate::prelude::*;
 use crate::psbt::{Error, PartiallySignedTransaction};
 use crate::taproot::{
     ControlBlock, LeafVersion, TapLeafHash, TapNodeHash, TapTree, TaprootBuilder,
@@ -41,7 +40,9 @@ pub(crate) trait Deserialize: Sized {
 
 impl PartiallySignedTransaction {
     /// Serialize a value as bytes in hex.
-    pub fn serialize_hex(&self) -> String { self.serialize().to_lower_hex_string() }
+    pub fn serialize_hex(&self) -> String {
+        crate::prelude::DisplayHex::to_lower_hex_string(&self.serialize())
+    }
 
     /// Serialize as raw binary data
     pub fn serialize(&self) -> Vec<u8> {

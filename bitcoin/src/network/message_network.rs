@@ -13,7 +13,7 @@ use crate::internal_macros::impl_consensus_encoding;
 use crate::io;
 use crate::network::address::Address;
 use crate::network::constants::{self, ServiceFlags};
-use crate::prelude::*;
+use crate::prelude::Cow;
 
 /// Some simple messages
 

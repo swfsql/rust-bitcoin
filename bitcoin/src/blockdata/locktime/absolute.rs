@@ -12,6 +12,8 @@ use core::{fmt, mem};
 use internals::write_err;
 #[cfg(all(test, mutate))]
 use mutagen::mutate;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 #[cfg(doc)]
 use crate::absolute;
@@ -19,7 +21,6 @@ use crate::consensus::encode::{self, Decodable, Encodable};
 use crate::error::ParseIntError;
 use crate::io::{self, Read, Write};
 use crate::parse::{impl_parse_str_from_int_fallible, impl_parse_str_from_int_infallible};
-use crate::prelude::*;
 use crate::string::FromHexStr;
 
 /// The Threshold for deciding whether a lock time value is a height or a time (see [Bitcoin Core]).
@@ -337,7 +338,7 @@ impl Decodable for LockTime {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for LockTime {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -347,7 +348,7 @@ impl serde::Serialize for LockTime {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for LockTime {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -380,8 +381,7 @@ impl<'de> serde::Deserialize<'de> for LockTime {
 
 /// An absolute block height, guaranteed to always contain a valid height value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Height(u32);
 
 impl Height {
@@ -465,8 +465,7 @@ impl FromHexStr for Height {
 /// `to_consensus_u32()`. Said another way, `Time(x)` means 'x seconds since epoch' _not_ '(x -
 /// threshold) seconds since epoch'.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Time(u32);
 
 impl Time {

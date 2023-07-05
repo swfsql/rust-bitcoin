@@ -3,11 +3,13 @@
 use core::convert::TryFrom;
 
 use secp256k1::XOnlyPublicKey;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 use {core, secp256k1};
 
 use crate::bip32::KeySource;
 use crate::blockdata::script::ScriptBuf;
-use crate::prelude::*;
+use crate::prelude::{btree_map, BTreeMap};
 use crate::psbt::map::Map;
 use crate::psbt::{raw, Error};
 use crate::taproot::{TapLeafHash, TapTree};
@@ -30,8 +32,7 @@ const PSBT_OUT_PROPRIETARY: u8 = 0xFC;
 /// A key-value map for an output of the corresponding index in the unsigned
 /// transaction.
 #[derive(Clone, Default, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Output {
     /// The redeem script for this output.
     pub redeem_script: Option<ScriptBuf>,
@@ -39,20 +40,26 @@ pub struct Output {
     pub witness_script: Option<ScriptBuf>,
     /// A map from public keys needed to spend this output to their
     /// corresponding master key fingerprints and derivation paths.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::btreemap_as_seq"))]
     pub bip32_derivation: BTreeMap<secp256k1::PublicKey, KeySource>,
     /// The internal pubkey.
     pub tap_internal_key: Option<XOnlyPublicKey>,
     /// Taproot Output tree.
     pub tap_tree: Option<TapTree>,
     /// Map of tap root x only keys to origin info and leaf hashes contained in it.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::btreemap_as_seq"))]
     pub tap_key_origins: BTreeMap<XOnlyPublicKey, (Vec<TapLeafHash>, KeySource)>,
     /// Proprietary key-value pairs for this output.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq_byte_values"))]
+    #[cfg_attr(
+        feature = "enable-serde",
+        serde(with = "crate::serde_utils::btreemap_as_seq_byte_values")
+    )]
     pub proprietary: BTreeMap<raw::ProprietaryKey, Vec<u8>>,
     /// Unknown key-value pairs for this output.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq_byte_values"))]
+    #[cfg_attr(
+        feature = "enable-serde",
+        serde(with = "crate::serde_utils::btreemap_as_seq_byte_values")
+    )]
     pub unknown: BTreeMap<raw::Key, Vec<u8>>,
 }
 

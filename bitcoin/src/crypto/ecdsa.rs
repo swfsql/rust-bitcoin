@@ -11,8 +11,9 @@ use hashes::hex::{self, FromHex};
 use internals::hex::display::DisplayHex;
 use internals::write_err;
 use secp256k1;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
 use crate::script::PushBytes;
 use crate::sighash::{EcdsaSighashType, NonStandardSighashType};
 
@@ -20,8 +21,7 @@ const MAX_SIG_LEN: usize = 73;
 
 /// An ECDSA signature with the corresponding hash type.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Signature {
     /// The underlying ECDSA Signature
     pub sig: secp256k1::ecdsa::Signature,

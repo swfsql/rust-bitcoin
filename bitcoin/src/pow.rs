@@ -11,6 +11,8 @@ use core::ops::{Add, Div, Mul, Not, Rem, Shl, Shr, Sub};
 
 #[cfg(all(test, mutate))]
 use mutagen::mutate;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::consensus::encode::{self, Decodable, Encodable};
 #[cfg(doc)]
@@ -64,8 +66,7 @@ macro_rules! do_impl {
 ///
 /// ref: <https://en.bitcoin.it/wiki/Work>
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Work(U256);
 
 impl Work {
@@ -112,8 +113,7 @@ impl Sub for Work {
 ///
 /// ref: <https://en.bitcoin.it/wiki/Target>
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Target(U256);
 
 impl Target {
@@ -259,8 +259,7 @@ do_impl!(Target);
 /// OpenSSL's bignum (BN) type has an encoding, which is even called "compact" as in bitcoin, which
 /// is exactly this format.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct CompactTarget(u32);
 
 impl CompactTarget {
@@ -798,11 +797,11 @@ macro_rules! impl_hex {
 impl_hex!(LowerHex, internals::hex::Case::Lower);
 impl_hex!(UpperHex, internals::hex::Case::Upper);
 
-#[cfg(feature = "serde")]
-impl crate::serde::Serialize for U256 {
+#[cfg(feature = "enable-serde")]
+impl serde::Serialize for U256 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: crate::serde::Serializer,
+        S: serde::Serializer,
     {
         struct DisplayHex(U256);
 
@@ -820,14 +819,13 @@ impl crate::serde::Serialize for U256 {
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'de> crate::serde::Deserialize<'de> for U256 {
-    fn deserialize<D: crate::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+#[cfg(feature = "enable-serde")]
+impl<'de> serde::Deserialize<'de> for U256 {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         use core::convert::TryInto;
 
         use hashes::hex::FromHex;
-
-        use crate::serde::de;
+        use serde::de;
 
         if d.is_human_readable() {
             struct HexVisitor;
@@ -1445,7 +1443,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn u256_serde() {
         let check = |uint, hex| {

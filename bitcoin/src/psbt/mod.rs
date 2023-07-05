@@ -13,13 +13,15 @@ use std::collections::{HashMap, HashSet};
 
 use internals::write_err;
 use secp256k1::{Message, Secp256k1, Signing};
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::bip32::{self, ExtendedPrivKey, ExtendedPubKey, KeySource};
 use crate::blockdata::script::ScriptBuf;
 use crate::blockdata::transaction::{Transaction, TxOut};
 use crate::crypto::ecdsa;
 use crate::crypto::key::{PrivateKey, PublicKey};
-use crate::prelude::*;
+use crate::prelude::{btree_map, BTreeMap, BTreeSet, Borrow};
 use crate::sighash::{self, EcdsaSighashType, SighashCache};
 use crate::Amount;
 
@@ -39,8 +41,7 @@ pub type Psbt = PartiallySignedTransaction;
 
 /// A Partially Signed Transaction.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct PartiallySignedTransaction {
     /// The unsigned transaction, scriptSigs and witnesses for each input must be empty.
     pub unsigned_tx: Transaction,
@@ -50,10 +51,16 @@ pub struct PartiallySignedTransaction {
     /// derivation path as defined by BIP 32.
     pub xpub: BTreeMap<ExtendedPubKey, KeySource>,
     /// Global proprietary key-value pairs.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq_byte_values"))]
+    #[cfg_attr(
+        feature = "enable-serde",
+        serde(with = "crate::serde_utils::btreemap_as_seq_byte_values")
+    )]
     pub proprietary: BTreeMap<raw::ProprietaryKey, Vec<u8>>,
     /// Unknown global key-value pairs.
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::btreemap_as_seq_byte_values"))]
+    #[cfg_attr(
+        feature = "enable-serde",
+        serde(with = "crate::serde_utils::btreemap_as_seq_byte_values")
+    )]
     pub unknown: BTreeMap<raw::Key, Vec<u8>>,
 
     /// The corresponding key-value map for each input in the unsigned transaction.
@@ -967,7 +974,7 @@ mod tests {
         assert_eq!(hex, psbt.serialize_hex());
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn test_serde_psbt() {
         //! Create a full PSBT value with various fields filled and make sure it can be JSONized.

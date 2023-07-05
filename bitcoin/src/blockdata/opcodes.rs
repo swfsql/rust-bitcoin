@@ -16,7 +16,6 @@ use internals::debug_from_display;
 use serde;
 
 #[cfg(feature = "serde")]
-use crate::prelude::*;
 
 /// A script Opcode.
 ///

@@ -21,7 +21,7 @@ use crate::network::constants::Magic;
 use crate::network::{
     message_blockdata, message_bloom, message_compact_blocks, message_filter, message_network,
 };
-use crate::prelude::*;
+use crate::prelude::Cow;
 
 /// The maximum number of [super::message_blockdata::Inventory] items in an `inv` message.
 ///

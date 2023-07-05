@@ -15,11 +15,12 @@ use internals::write_err;
 #[cfg(feature = "rand-std")]
 pub use secp256k1::rand;
 pub use secp256k1::{self, constants, KeyPair, Parity, Secp256k1, Verification, XOnlyPublicKey};
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::crypto::ecdsa;
 use crate::hash_types::{PubkeyHash, WPubkeyHash};
 use crate::network::constants::Network;
-use crate::prelude::*;
 use crate::taproot::{TapNodeHash, TapTweakHash};
 use crate::{base58, io};
 
@@ -419,14 +420,14 @@ impl ops::Index<ops::RangeFull> for PrivateKey {
     fn index(&self, _: ops::RangeFull) -> &[u8] { &self.inner[..] }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for PrivateKey {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.collect_str(self)
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for PrivateKey {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<PrivateKey, D::Error> {
         struct WifVisitor;
@@ -461,7 +462,7 @@ impl<'de> serde::Deserialize<'de> for PrivateKey {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 #[allow(clippy::collapsible_else_if)] // Aids readability.
 impl serde::Serialize for PublicKey {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
@@ -473,7 +474,7 @@ impl serde::Serialize for PublicKey {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for PublicKey {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<PublicKey, D::Error> {
         if d.is_human_readable() {
@@ -533,9 +534,8 @@ pub type UntweakedPublicKey = XOnlyPublicKey;
 
 /// Tweaked BIP-340 X-coord-only public key
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(transparent))]
 pub struct TweakedPublicKey(XOnlyPublicKey);
 
 impl fmt::LowerHex for TweakedPublicKey {
@@ -565,9 +565,8 @@ pub type UntweakedKeyPair = KeyPair;
 /// # }
 /// ```
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(transparent))]
 pub struct TweakedKeyPair(KeyPair);
 
 /// A trait for tweaking BIP340 key types (x-only public keys and key pairs).
@@ -811,7 +810,7 @@ mod tests {
         assert_eq!(upk.wpubkey_hash(), None);
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn test_key_serde() {
         use serde_test::{assert_tokens, Configure, Token};

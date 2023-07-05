@@ -50,7 +50,6 @@ use crate::crypto::key::{PublicKey, TapTweak, TweakedPublicKey, UntweakedPublicK
 use crate::error::ParseIntError;
 use crate::hash_types::{PubkeyHash, ScriptHash};
 use crate::network::constants::Network;
-use crate::prelude::*;
 use crate::taproot::TapNodeHash;
 
 /// Address error.

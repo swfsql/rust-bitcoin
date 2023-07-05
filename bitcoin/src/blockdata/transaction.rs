@@ -17,6 +17,8 @@ use core::{cmp, fmt, str};
 
 use hashes::{self, sha256d, Hash};
 use internals::write_err;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use super::Weight;
 use crate::blockdata::locktime::absolute::{self, Height, Time};
@@ -30,7 +32,7 @@ use crate::crypto::sighash::LegacySighash;
 use crate::hash_types::{Txid, Wtxid};
 use crate::internal_macros::impl_consensus_encoding;
 use crate::parse::impl_parse_str_from_int_infallible;
-use crate::prelude::*;
+use crate::prelude::Borrow;
 #[cfg(doc)]
 use crate::sighash::{EcdsaSighashType, TapSighashType};
 use crate::string::FromHexStr;
@@ -48,7 +50,7 @@ pub struct OutPoint {
     /// The index of the referenced output in its transaction's vout.
     pub vout: u32,
 }
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 crate::serde_utils::serde_struct_human_string_impl!(OutPoint, "an OutPoint", txid, vout);
 
 impl OutPoint {
@@ -178,8 +180,7 @@ impl core::str::FromStr for OutPoint {
 ///
 /// * [CTxIn definition](https://github.com/bitcoin/bitcoin/blob/345457b542b6a980ccfbc868af0970a6f91d1b82/src/primitives/transaction.h#L65)
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct TxIn {
     /// The reference to the previous output that is being used as an input.
     pub previous_output: OutPoint,
@@ -268,8 +269,7 @@ impl Default for TxIn {
 /// [BIP-68]: <https://github.com/bitcoin/bips/blob/master/bip-0068.mediawiki>
 /// [BIP-125]: <https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki>
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Sequence(pub u32);
 
 impl Sequence {
@@ -473,8 +473,7 @@ impl_parse_str_from_int_infallible!(Sequence, u32, from_consensus);
 ///
 /// * [CTxOut definition](https://github.com/bitcoin/bitcoin/blob/345457b542b6a980ccfbc868af0970a6f91d1b82/src/primitives/transaction.h#L148)
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct TxOut {
     /// The value of the output, in satoshis.
     pub value: Amount,
@@ -646,8 +645,7 @@ impl<E> EncodeSigningDataResult<E> {
 /// before this change, so users should not notice any breakage (here) when
 /// transitioning from 0.29 to 0.30.
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Transaction {
     /// The protocol version, is currently expected to be 1 or 2 (BIP 68).
     pub version: i32,
@@ -1640,7 +1638,7 @@ mod tests {
     }
 
     // We temporarily abuse `Transaction` for testing consensus serde adapter.
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn test_consensus_serde() {
         use crate::consensus::serde as con_serde;
@@ -1772,7 +1770,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     fn test_txn_encode_decode() {
         let tx_bytes = hex!("0100000001a15d57094aa7a21a28cb20b59aab8fc7d1149a3bdbcddba9c622e4f5f6a99ece010000006c493046022100f93bb0e7d8db7bd46e40132d1f8242026e045f03a0efe71bbb8e3f475e970d790221009337cd7f1f929f00cc6ff01f03729b069a7c21b59b1736ddfee5db5946c5da8c0121033b9b137ee87d5a812d6f506efdd37f0affa7ffc310711c06c7f3e097c9447c52ffffffff0100e1f505000000001976a9140389035a9225b3839e2bbf32d826a1e222031fd888ac00000000");
         let tx: Transaction = deserialize(&tx_bytes).unwrap();
@@ -1782,7 +1780,7 @@ mod tests {
     // Test decoding transaction `4be105f158ea44aec57bf12c5817d073a712ab131df6f37786872cfc70734188`
     // from testnet, which is the first BIP144-encoded transaction I encountered.
     #[test]
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     fn test_segwit_tx_decode() {
         let tx_bytes = hex!("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff3603da1b0e00045503bd5704c7dd8a0d0ced13bb5785010800000000000a636b706f6f6c122f4e696e6a61506f6f6c2f5345475749542fffffffff02b4e5a212000000001976a914876fbb82ec05caa6af7a3b5e5a983aae6c6cc6d688ac0000000000000000266a24aa21a9edf91c46b49eb8a29089980f02ee6b57e7d63d33b18b4fddac2bcd7db2a39837040120000000000000000000000000000000000000000000000000000000000000000000000000");
         let tx: Transaction = deserialize(&tx_bytes).unwrap();

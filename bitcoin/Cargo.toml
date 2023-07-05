@@ -13,10 +13,11 @@ edition = "2018"
 exclude = ["tests", "contrib"]
 
 [features]
-default = [ "std", "secp-recovery" ]
+# default = [ "std", "secp-recovery" ]
+default = [ "std", "secp-recovery", "enable-serde" ]
 rand-std = ["secp256k1/rand-std"]
 rand = ["secp256k1/rand"]
-serde = ["actual-serde", "hashes/serde", "secp256k1/serde", "internals/serde"]
+enable-serde = ["serde", "hashes/serde", "secp256k1/serde", "internals/serde"]
 secp-lowmemory = ["secp256k1/lowmemory"]
 secp-recovery = ["secp256k1/recovery"]
 bitcoinconsensus-std = ["bitcoinconsensus/std", "std"]
@@ -44,7 +45,8 @@ base64 = { version = "0.13.0", optional = true }
 bitcoinconsensus = { version = "0.20.2-0.5.0", default-features = false, optional = true }
 core2 = { version = "0.3.2", default-features = false, features = ["alloc"], optional = true }
 # Do NOT use this as a feature! Use the `serde` feature instead.
-actual-serde = { package = "serde", version = "1.0.103", default-features = false, features = [ "derive", "alloc" ], optional = true }
+# actual-serde = { package = "serde", version = "1.0.103", default-features = false, features = [ "derive", "alloc" ], optional = true }
+serde = { version = "1.0.103", default-features = false, features = [ "derive", "alloc" ], optional = true }
 
 [dev-dependencies]
 serde_json = "1.0.0"

@@ -133,9 +133,9 @@ macro_rules! impl_bytes_newtype {
             }
         }
 
-        #[cfg(feature = "serde")]
-        impl $crate::serde::Serialize for $t {
-            fn serialize<S: $crate::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        #[cfg(feature = "enable-serde")]
+        impl ::serde::Serialize for $t {
+            fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
                 if s.is_human_readable() {
                     s.collect_str(self)
                 } else {
@@ -144,13 +144,13 @@ macro_rules! impl_bytes_newtype {
             }
         }
 
-        #[cfg(feature = "serde")]
-        impl<'de> $crate::serde::Deserialize<'de> for $t {
-            fn deserialize<D: $crate::serde::Deserializer<'de>>(d: D) -> Result<$t, D::Error> {
+        #[cfg(feature = "enable-serde")]
+        impl<'de> ::serde::Deserialize<'de> for $t {
+            fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<$t, D::Error> {
                 if d.is_human_readable() {
                     struct HexVisitor;
 
-                    impl<'de> $crate::serde::de::Visitor<'de> for HexVisitor {
+                    impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
                         type Value = $t;
 
                         fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -159,12 +159,12 @@ macro_rules! impl_bytes_newtype {
 
                         fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
                         where
-                            E: $crate::serde::de::Error,
+                            E: ::serde::de::Error,
                         {
-                            use $crate::serde::de::Unexpected;
+                            use ::serde::de::Unexpected;
 
                             if let Ok(hex) = core::str::from_utf8(v) {
-                                $crate::hashes::hex::FromHex::from_hex(hex).map_err(E::custom)
+                                ::hashes::hex::FromHex::from_hex(hex).map_err(E::custom)
                             } else {
                                 return Err(E::invalid_value(Unexpected::Bytes(v), &self));
                             }
@@ -172,7 +172,7 @@ macro_rules! impl_bytes_newtype {
 
                         fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
                         where
-                            E: $crate::serde::de::Error,
+                            E: ::serde::de::Error,
                         {
                             $crate::hashes::hex::FromHex::from_hex(v).map_err(E::custom)
                         }
@@ -182,7 +182,7 @@ macro_rules! impl_bytes_newtype {
                 } else {
                     struct BytesVisitor;
 
-                    impl<'de> $crate::serde::de::Visitor<'de> for BytesVisitor {
+                    impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
                         type Value = $t;
 
                         fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -191,7 +191,7 @@ macro_rules! impl_bytes_newtype {
 
                         fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
                         where
-                            E: $crate::serde::de::Error,
+                            E: ::serde::de::Error,
                         {
                             if v.len() != $len {
                                 Err(E::invalid_length(v.len(), &stringify!($len)))

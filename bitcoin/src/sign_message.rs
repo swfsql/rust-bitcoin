@@ -26,8 +26,6 @@ mod message_signing {
 
     use crate::address::{Address, AddressType};
     use crate::crypto::key::PublicKey;
-    #[cfg(feature = "base64")]
-    use crate::prelude::*;
 
     /// An error used for dealing with Bitcoin Signed Messages.
     #[derive(Debug, PartialEq, Eq)]

@@ -11,9 +11,11 @@ use core::fmt::{self, Write};
 use core::str::FromStr;
 use core::{default, ops};
 
+#[cfg(feature = "enable-serde")]
+use ::serde::{Deserialize, Serialize};
+
 use crate::consensus::encode::{self, Decodable, Encodable};
 use crate::io;
-use crate::prelude::*;
 
 /// A set of denominations in which amounts can be expressed.
 ///
@@ -492,8 +494,7 @@ fn fmt_satoshi_in(
 /// the checked arithmetic methods.
 ///
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Amount(u64);
 
 impl Amount {
@@ -1217,7 +1218,7 @@ mod private {
     impl<T> SumSeal<SignedAmount> for T where T: Iterator<Item = SignedAmount> {}
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 pub mod serde {
     // methods are implementation of a standardized serde-specific signature
     #![allow(missing_docs)]
@@ -1582,7 +1583,7 @@ mod tests {
     #[cfg(feature = "std")]
     use std::panic;
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     use serde_test;
 
     use super::*;
@@ -2145,11 +2146,10 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     fn serde_as_sat() {
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[serde(crate = "actual_serde")]
         struct T {
             #[serde(with = "crate::amount::serde::as_sat")]
             pub amt: Amount,
@@ -2170,14 +2170,13 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     #[allow(clippy::inconsistent_digit_grouping)] // Group to show 100,000,000 sats per bitcoin.
     fn serde_as_btc() {
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[serde(crate = "actual_serde")]
         struct T {
             #[serde(with = "crate::amount::serde::as_btc")]
             pub amt: Amount,
@@ -2206,14 +2205,13 @@ mod tests {
         assert!(t.unwrap_err().to_string().contains(&ParseAmountError::Negative.to_string()));
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     #[allow(clippy::inconsistent_digit_grouping)] // Group to show 100,000,000 sats per bitcoin.
     fn serde_as_btc_opt() {
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
-        #[serde(crate = "actual_serde")]
         struct T {
             #[serde(default, with = "crate::amount::serde::as_btc::opt")]
             pub amt: Option<Amount>,
@@ -2248,14 +2246,13 @@ mod tests {
         assert_eq!(without, serde_json::from_value(value_without).unwrap());
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     #[test]
     #[allow(clippy::inconsistent_digit_grouping)] // Group to show 100,000,000 sats per bitcoin.
     fn serde_as_sat_opt() {
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
-        #[serde(crate = "actual_serde")]
         struct T {
             #[serde(default, with = "crate::amount::serde::as_sat::opt")]
             pub amt: Option<Amount>,

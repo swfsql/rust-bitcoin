@@ -13,7 +13,6 @@ use crate::hash_types::{BlockHash, Txid, Wtxid};
 use crate::internal_macros::impl_consensus_encoding;
 use crate::io;
 use crate::network::constants;
-use crate::prelude::*;
 
 /// An inventory item.
 #[derive(PartialEq, Eq, Clone, Debug, Copy, Hash, PartialOrd, Ord)]
@@ -72,7 +71,7 @@ impl Encodable for Inventory {
             Inventory::Transaction(ref t) => encode_inv!(1, t),
             Inventory::Block(ref b) => encode_inv!(2, b),
             Inventory::CompactBlock(ref b) => encode_inv!(4, b),
-            Inventory::WTx(w) => encode_inv!(5, w),
+            Inventory::WTx(wtx) => encode_inv!(5, wtx),
             Inventory::WitnessTransaction(ref t) => encode_inv!(0x40000001, t),
             Inventory::WitnessBlock(ref b) => encode_inv!(0x40000002, b),
             Inventory::Unknown { inv_type: t, hash: ref d } => encode_inv!(t, d),
@@ -147,9 +146,10 @@ impl_consensus_encoding!(GetHeadersMessage, version, locator_hashes, stop_hash);
 mod tests {
     use hashes::Hash;
 
-    use super::{GetBlocksMessage, GetHeadersMessage, Vec};
+    use super::{GetBlocksMessage, GetHeadersMessage};
     use crate::consensus::encode::{deserialize, serialize};
     use crate::internal_macros::hex;
+    use crate::prelude::Vec;
 
     #[test]
     fn getblocks_message_test() {

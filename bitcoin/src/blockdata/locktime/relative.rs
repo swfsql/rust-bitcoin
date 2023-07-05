@@ -11,9 +11,10 @@ use core::fmt;
 
 #[cfg(all(test, mutate))]
 use mutagen::mutate;
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::parse::impl_parse_str_from_int_infallible;
-use crate::prelude::*;
 #[cfg(doc)]
 use crate::relative;
 
@@ -28,8 +29,7 @@ use crate::relative;
 /// * [BIP 112 CHECKSEQUENCEVERIFY](https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki)
 #[allow(clippy::derive_ord_xor_partial_ord)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub enum LockTime {
     /// A block height lock time value.
     Blocks(Height),
@@ -193,8 +193,7 @@ impl fmt::Display for LockTime {
 
 /// A relative lock time lock-by-blockheight value.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Height(u16);
 
 impl Height {
@@ -239,8 +238,7 @@ impl fmt::Display for Height {
 ///
 /// For BIP 68 relative lock-by-blocktime locks, time is measure in 512 second intervals.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Time(u16);
 
 impl Time {

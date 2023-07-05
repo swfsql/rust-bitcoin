@@ -13,12 +13,14 @@ use core::iter::FusedIterator;
 use hashes::{sha256t_hash_newtype, Hash, HashEngine};
 use internals::write_err;
 use secp256k1::{self, Scalar, Secp256k1};
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::consensus::Encodable;
 use crate::crypto::key::{TapTweak, TweakedPublicKey, UntweakedPublicKey, XOnlyPublicKey};
 // Re-export these so downstream only has to use one `taproot` module.
 pub use crate::crypto::taproot::{SigFromSliceError, Signature};
-use crate::prelude::*;
+use crate::prelude::{BTreeMap, BTreeSet, BinaryHeap};
 use crate::{io, Script, ScriptBuf};
 
 // Taproot test vectors from BIP-341 state the hashes without any reversing
@@ -661,10 +663,9 @@ impl std::error::Error for HiddenNodes {
 // This is a bug in BIP370 that does not specify how to share trees with hidden nodes,
 // for which we need a separate type.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(into = "NodeInfo"))]
-#[cfg_attr(feature = "serde", serde(try_from = "NodeInfo"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(into = "NodeInfo"))]
+#[cfg_attr(feature = "enable-serde", serde(try_from = "NodeInfo"))]
 pub struct TapTree(NodeInfo);
 
 impl From<TapTree> for NodeInfo {
@@ -841,7 +842,7 @@ impl TryFrom<TaprootBuilder> for NodeInfo {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for NodeInfo {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -857,7 +858,7 @@ impl serde::Serialize for NodeInfo {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for NodeInfo {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -915,8 +916,7 @@ impl<'de> serde::Deserialize<'de> for NodeInfo {
 
 /// Leaf node in a taproot tree. Can be either hidden or known.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub enum TapLeaf {
     /// A known script
     Script(ScriptBuf, LeafVersion),
@@ -1044,10 +1044,9 @@ impl<'leaf> ScriptLeaf<'leaf> {
 
 /// The merkle proof for inclusion of a tree in a taptree hash.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
-#[cfg_attr(feature = "serde", serde(into = "Vec<TapNodeHash>"))]
-#[cfg_attr(feature = "serde", serde(try_from = "Vec<TapNodeHash>"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "enable-serde", serde(into = "Vec<TapNodeHash>"))]
+#[cfg_attr(feature = "enable-serde", serde(try_from = "Vec<TapNodeHash>"))]
 pub struct TaprootMerkleBranch(Vec<TapNodeHash>);
 
 impl TaprootMerkleBranch {
@@ -1185,8 +1184,7 @@ impl From<TaprootMerkleBranch> for Vec<TapNodeHash> {
 
 /// Control block data structure used in Tapscript satisfaction.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct ControlBlock {
     /// The tapleaf version.
     pub leaf_version: LeafVersion,
@@ -1386,7 +1384,7 @@ impl fmt::UpperHex for LeafVersion {
 }
 
 /// Serializes [`LeafVersion`] as a `u8` using consensus encoding.
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for LeafVersion {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1397,7 +1395,7 @@ impl serde::Serialize for LeafVersion {
 }
 
 /// Deserializes [`LeafVersion`] as a `u8` using consensus encoding.
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for LeafVersion {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -1567,11 +1565,12 @@ mod test {
     use secp256k1::{VerifyOnly, XOnlyPublicKey};
 
     use super::*;
+    use crate::prelude::DisplayHex;
     use crate::sighash::{TapSighash, TapSighashTag};
     use crate::{Address, Network};
     extern crate serde_json;
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     use {
         crate::internal_macros::hex,
         serde_test::Configure,
@@ -1811,7 +1810,7 @@ mod test {
         let builder = builder.finalize(&secp, internal_key).unwrap_err();
         let builder = builder.add_leaf(3, e.clone()).unwrap();
 
-        #[cfg(feature = "serde")]
+        #[cfg(feature = "enable-serde")]
         {
             let tree = TapTree::try_from(builder.clone()).unwrap();
             // test roundtrip serialization with serde_test
@@ -1855,7 +1854,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     fn test_leaf_version_serde() {
         let leaf_version = LeafVersion::TapScript;
         // use serde_test to test serialization and deserialization
@@ -1867,7 +1866,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "enable-serde")]
     fn test_merkle_branch_serde() {
         let dummy_hash = hex!("03ba2a4dcd914fed29a1c630c7e811271b081a0e2f2f52cf1c197583dfd46c1b");
         let hash1 = TapNodeHash::from_slice(&dummy_hash).unwrap();

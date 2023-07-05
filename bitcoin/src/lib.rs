@@ -73,10 +73,6 @@ pub extern crate hashes;
 /// for the SECG elliptic curve group secp256k1 and related utilities.
 pub extern crate secp256k1;
 
-#[cfg(feature = "serde")]
-#[macro_use]
-extern crate actual_serde as serde;
-
 #[cfg(test)]
 #[macro_use]
 mod test_macros;

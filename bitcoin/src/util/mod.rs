@@ -7,7 +7,6 @@
 
 /// The `misc` module was moved and re-named to `sign_message`.
 pub mod misc {
-    use crate::prelude::*;
 
     /// Search for `needle` in the vector `haystack` and remove every
     /// instance of it, returning the number of instances removed.

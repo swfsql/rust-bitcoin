@@ -49,7 +49,6 @@ use crate::blockdata::weight::Weight;
 use crate::consensus::encode::{self, Decodable, Encodable};
 use crate::hash_types::{TxMerkleNode, Txid};
 use crate::io;
-use crate::prelude::*;
 
 /// Data structure that represents a block header paired to a partial merkle tree.
 ///
@@ -527,6 +526,7 @@ mod tests {
     #[cfg(feature = "rand-std")]
     use crate::hash_types::TxMerkleNode;
     use crate::internal_macros::hex;
+    use crate::prelude::DisplayHex;
     use crate::{Block, Txid};
 
     #[cfg(feature = "rand-std")]

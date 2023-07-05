@@ -8,7 +8,6 @@ use core::ops::{Deref, DerefMut};
 pub use primitive::*;
 
 #[allow(unused)]
-use crate::prelude::*;
 
 /// This module only contains required operations so that outside functions wouldn't accidentally
 /// break invariants. Therefore auditing this module should be sufficient.
@@ -22,8 +21,6 @@ mod primitive {
 
     use super::PushBytesError;
     #[allow(unused)]
-    use crate::prelude::*;
-
     #[cfg(any(target_pointer_width = "16", target_pointer_width = "32"))]
     fn check_limit(len: usize) -> Result<(), PushBytesError> { Ok(()) }
 

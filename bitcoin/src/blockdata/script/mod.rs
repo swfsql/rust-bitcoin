@@ -55,14 +55,10 @@ use core::cmp::Ordering;
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 
-#[cfg(feature = "serde")]
-use serde;
-
 use crate::blockdata::opcodes::all::*;
 use crate::blockdata::opcodes::{self};
 use crate::consensus::{encode, Decodable, Encodable};
 use crate::hash_types::{ScriptHash, WScriptHash};
-use crate::prelude::*;
 use crate::{io, OutPoint};
 
 mod borrowed;
@@ -78,6 +74,7 @@ pub use self::builder::*;
 pub use self::instruction::*;
 pub use self::owned::*;
 pub use self::push_bytes::*;
+use crate::prelude::Cow;
 
 /// Encodes an integer in script(minimal CScriptNum) format.
 ///
@@ -385,7 +382,7 @@ impl fmt::Display for ScriptBuf {
 
 impl fmt::LowerHex for Script {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::LowerHex::fmt(&self.as_bytes().as_hex(), f)
+        fmt::LowerHex::fmt(&crate::prelude::DisplayHex::as_hex(self.as_bytes()), f)
     }
 }
 
@@ -396,7 +393,7 @@ impl fmt::LowerHex for ScriptBuf {
 
 impl fmt::UpperHex for Script {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::UpperHex::fmt(&self.as_bytes().as_hex(), f)
+        fmt::UpperHex::fmt(&crate::prelude::DisplayHex::as_hex(self.as_bytes()), f)
     }
 }
 
@@ -443,7 +440,7 @@ impl PartialOrd<ScriptBuf> for Script {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for Script {
     /// User-facing serialization for `Script`.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -459,14 +456,14 @@ impl serde::Serialize for Script {
 }
 
 /// Can only deserialize borrowed bytes.
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for &'de Script {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         if deserializer.is_human_readable() {
-            use crate::serde::de::Error;
+            use serde::de::Error;
 
             return Err(D::Error::custom(
                 "deserialization of `&Script` from human-readable formats is not possible",
@@ -492,7 +489,7 @@ impl<'de> serde::Deserialize<'de> for &'de Script {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl serde::Serialize for ScriptBuf {
     /// User-facing serialization for `Script`.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -503,7 +500,7 @@ impl serde::Serialize for ScriptBuf {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "enable-serde")]
 impl<'de> serde::Deserialize<'de> for ScriptBuf {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

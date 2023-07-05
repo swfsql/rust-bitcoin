@@ -21,7 +21,6 @@ use crate::consensus::Encodable;
 use crate::hash_types::{ScriptHash, WScriptHash};
 use crate::key::{PublicKey, UntweakedPublicKey};
 use crate::policy::DUST_RELAY_TX_FEE;
-use crate::prelude::*;
 use crate::taproot::{LeafVersion, TapLeafHash, TapNodeHash};
 
 /// Bitcoin script slice.
@@ -308,11 +307,11 @@ impl Script {
         } else if self.is_witness_program() {
             32 + 4 + 1 + (107 / 4) + 4 + // The spend cost copied from Core
             8 + // The serialized size of the TxOut's amount field
-            self.consensus_encode(&mut sink()).expect("sinks don't error") as u64 // The serialized size of this script_pubkey
+            self.consensus_encode(&mut crate::prelude::sink()).expect("sinks don't error") as u64 // The serialized size of this script_pubkey
         } else {
             32 + 4 + 1 + 107 + 4 + // The spend cost copied from Core
             8 + // The serialized size of the TxOut's amount field
-            self.consensus_encode(&mut sink()).expect("sinks don't error") as u64 // The serialized size of this script_pubkey
+            self.consensus_encode(&mut crate::prelude::sink()).expect("sinks don't error") as u64 // The serialized size of this script_pubkey
         };
 
         crate::Amount::from_sat(sats)
@@ -494,7 +493,9 @@ impl Script {
     /// This is a more convenient and performant way to write `format!("{:x}", script)`.
     /// For better performance you should generally prefer displaying the script but if `String` is
     /// required (this is common in tests) this method is can be used.
-    pub fn to_hex_string(&self) -> String { self.as_bytes().to_lower_hex_string() }
+    pub fn to_hex_string(&self) -> String {
+        crate::prelude::DisplayHex::to_lower_hex_string(self.as_bytes())
+    }
 
     /// Returns the first opcode of the script (if there is any).
     pub fn first_opcode(&self) -> Option<opcodes::All> {

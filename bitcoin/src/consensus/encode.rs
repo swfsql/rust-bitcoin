@@ -30,7 +30,7 @@ use crate::network::{
     address::{AddrV2Message, Address},
     message_blockdata::Inventory,
 };
-use crate::prelude::*;
+use crate::prelude::{Cow, DisplayHex};
 use crate::taproot::TapLeafHash;
 
 /// Encoding error.
@@ -722,7 +722,7 @@ impl<'a, T: Encodable> Encodable for &'a mut T {
     }
 }
 
-impl<T: Encodable> Encodable for rc::Rc<T> {
+impl<T: Encodable> Encodable for crate::prelude::rc::Rc<T> {
     fn consensus_encode<W: io::Write + ?Sized>(&self, w: &mut W) -> Result<usize, io::Error> {
         (**self).consensus_encode(w)
     }
@@ -730,7 +730,7 @@ impl<T: Encodable> Encodable for rc::Rc<T> {
 
 /// Note: This will fail to compile on old Rust for targets that don't support atomics
 #[cfg(any(not(rust_v_1_60), target_has_atomic = "ptr"))]
-impl<T: Encodable> Encodable for sync::Arc<T> {
+impl<T: Encodable> Encodable for crate::prelude::sync::Arc<T> {
     fn consensus_encode<W: io::Write + ?Sized>(&self, w: &mut W) -> Result<usize, io::Error> {
         (**self).consensus_encode(w)
     }

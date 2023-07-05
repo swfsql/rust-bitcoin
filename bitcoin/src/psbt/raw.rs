@@ -9,38 +9,38 @@
 use core::convert::TryFrom;
 use core::fmt;
 
-use super::serialize::{Deserialize, Serialize};
+#[cfg(feature = "enable-serde")]
+use serde::{Deserialize, Serialize};
+
+use super::serialize::{Deserialize as PsbtDeserialize, Serialize as PsbtSerialize};
 use crate::consensus::encode::{
     self, deserialize, serialize, Decodable, Encodable, ReadExt, VarInt, WriteExt, MAX_VEC_SIZE,
 };
 use crate::io;
-use crate::prelude::*;
 use crate::psbt::Error;
 
 /// A PSBT key in its raw byte form.
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Key {
     /// The type of this PSBT key.
     pub type_value: u8,
     /// The key itself in raw byte form.
     /// `<key> := <keylen> <keytype> <keydata>`
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::hex_bytes"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::hex_bytes"))]
     pub key: Vec<u8>,
 }
 
 /// A PSBT key-value pair in its raw byte form.
 /// `<keypair> := <key> <value>`
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct Pair {
     /// The key of this key-value pair.
     pub key: Key,
     /// The value data of this key-value pair in raw byte form.
     /// `<value> := <valuelen> <valuedata>`
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::hex_bytes"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::hex_bytes"))]
     pub value: Vec<u8>,
 }
 
@@ -50,26 +50,30 @@ pub type ProprietaryType = u8;
 /// Proprietary keys (i.e. keys starting with 0xFC byte) with their internal
 /// structure according to BIP 174.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(crate = "actual_serde"))]
+#[cfg_attr(feature = "enable-serde", derive(Serialize, Deserialize))]
 pub struct ProprietaryKey<Subtype = ProprietaryType>
 where
     Subtype: Copy + From<u8> + Into<u8>,
 {
     /// Proprietary type prefix used for grouping together keys under some
     /// application and avoid namespace collision
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::hex_bytes"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::hex_bytes"))]
     pub prefix: Vec<u8>,
     /// Custom proprietary subtype
     pub subtype: Subtype,
     /// Additional key bytes (like serialized public key data etc)
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde_utils::hex_bytes"))]
+    #[cfg_attr(feature = "enable-serde", serde(with = "crate::serde_utils::hex_bytes"))]
     pub key: Vec<u8>,
 }
 
 impl fmt::Display for Key {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "type: {:#x}, key: {:x}", self.type_value, self.key.as_hex())
+        write!(
+            f,
+            "type: {:#x}, key: {:x}",
+            self.type_value,
+            internals::hex::exts::DisplayHex::as_hex(&self.key)
+        )
     }
 }
 
@@ -101,7 +105,7 @@ impl Key {
     }
 }
 
-impl Serialize for Key {
+impl PsbtSerialize for Key {
     fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
         VarInt((self.key.len() + 1) as u64)
@@ -118,17 +122,17 @@ impl Serialize for Key {
     }
 }
 
-impl Serialize for Pair {
+impl PsbtSerialize for Pair {
     fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
-        buf.extend(self.key.serialize());
+        buf.extend(PsbtSerialize::serialize(&self.key));
         // <value> := <valuelen> <valuedata>
         self.value.consensus_encode(&mut buf).unwrap();
         buf
     }
 }
 
-impl Deserialize for Pair {
+impl PsbtDeserialize for Pair {
     fn deserialize(bytes: &[u8]) -> Result<Self, Error> {
         let mut decoder = bytes;
         Pair::decode(&mut decoder)

@@ -23,7 +23,6 @@ use hashes::Hash;
 
 use crate::consensus::encode::Encodable;
 use crate::io;
-use crate::prelude::*;
 
 /// Calculates the merkle root of a list of *hashes*, inline (in place) in `hashes`.
 ///

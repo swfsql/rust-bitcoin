@@ -13,7 +13,6 @@ use crate::blockdata::opcodes::{self};
 use crate::blockdata::script::{opcode_to_verify, write_scriptint, PushBytes, Script, ScriptBuf};
 use crate::blockdata::transaction::Sequence;
 use crate::key::PublicKey;
-use crate::prelude::*;
 
 /// An Object which can be used to construct a script piece by piece.
 #[derive(PartialEq, Eq, Clone)]
